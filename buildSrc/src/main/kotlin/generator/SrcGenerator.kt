@@ -21,20 +21,31 @@ class SrcGenerator(
 		val main = """
 			package $groupId
 
+			import $groupId.commands.Command
 			import $groupId.events.Events
 			import org.bukkit.plugin.java.JavaPlugin
-
+			
 			class Main : JavaPlugin() {
 			    private val plugin = this
+				
 			    override fun onEnable() {
 			        super.onEnable()
+					
+			        registerEvents()
+			        // registerCommands()
+			    }
+				
+			    private fun registerEvents() {
 			        server.pluginManager.registerEvents(Events(), plugin)
-			        // val command = getCommand("command")
-			        // command!!.setExecutor(Command())
+			    }
+
+			    private fun registerCommands() {
+			        val command = getCommand("command")
+			        command?.setExecutor(Command())
 			    }
 			}
 
-		""".trimIndent()
+			""".trimIndent()
 		GeneratorUtil.makeFile(srcDir, "Main.kt", main)
 	}
 
