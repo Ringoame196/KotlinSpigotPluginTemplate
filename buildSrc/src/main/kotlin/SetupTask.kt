@@ -14,6 +14,15 @@ open class SetupTask : DefaultTask() {
     @TaskAction
     fun action() {
         val projectDir = project.projectDir
+        val sentinelFile = projectDir.resolve(".setup_completed")
+        val isForce = project.hasProperty("force")
+
+        // すでに実行済みで、-Pforce が付与されていない場合は中断
+        if (sentinelFile.exists() && !isForce) {
+            logger.warn("⚠️ Setup is already complete.")
+            logger.warn("If you want to run it again, specify ‘./gradlew setup -Pforce’ or delete the .setup_completed file.")
+            return
+        }
 
         openGit().use { git ->
             setupBranch(git)
@@ -25,6 +34,9 @@ open class SetupTask : DefaultTask() {
             BuildGradleUpdater(projectDir, ctx).update()
             ReadMeGenerator(projectDir,ctx).generate()
         }
+        // セットアップ完了の目印を作成
+        sentinelFile.writeText("Setup completed at: ${java.time.Instant.now()}")
+        logger.lifecycle("✅ Setup is complete (Created .setup_completed)")
     }
 
     private fun openGit(): Git {
